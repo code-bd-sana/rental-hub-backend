@@ -12,7 +12,7 @@ const register = z.object({
       password: z
         .string({ message: 'Password is required.' })
         .min(8, 'Password must be at least 8 characters long.'),
-      role: z.enum(['USER']).optional()
+      role: z.enum(['GUEST', 'HOST', 'ADMIN']).optional()
     })
     .strict()
 });

@@ -6,21 +6,75 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  GUEST
+  HOST
+  ADMIN
+}
+
+enum ListingCategory {
+  STAYS
+  CARS
+  FOOD
+  SALON
+  BARBER
+  SPA
+}
+
 model User {
   id                   String    @id @default(uuid())
   name                 String
   email                String    @unique
   password             String
-  role                 Role      @default(USER)
+  role                 Role      @default(GUEST)
   passwordResetCode    String?
   passwordResetExpires DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
+  // Team Relation
+  teamId               String?
+  team                 Team?     @relation(fields: [teamId], references: [id])
+
+  // Listing Relation
+  listings             Listing[]
+
   @@map("users")
 }
 
-enum Role {
-  USER
-  ADMIN
+model Team {
+  id          String    @id // The service layer will generate this with the `tm_` prefix
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  members     User[]
+  listings    Listing[]
+
+  @@map("teams")
+}
+
+model Listing {
+  id          String          @id @default(uuid())
+  title       String
+  description String
+  category    ListingCategory
+  price       Float
+  location    String?
+  isActive    Boolean         @default(true)
+  
+  // JSON field for dynamic category-specific attributes (e.g. carModel, bedrooms, cuisine)
+  attributes  Json?
+
+  hostId      String
+  host        User            @relation(fields: [hostId], references: [id])
+
+  teamId      String?
+  team        Team?           @relation(fields: [teamId], references: [id])
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("listings")
 }
