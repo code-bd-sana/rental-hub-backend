@@ -32,9 +32,12 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  // Team Relation
+  // Team Membership
   teamId               String?
-  team                 Team?     @relation(fields: [teamId], references: [id])
+  team                 Team?     @relation("TeamMembers", fields: [teamId], references: [id])
+
+  // Teams Owned (a user can own one team)
+  ownedTeams           Team[]    @relation("TeamOwner")
 
   // Listing Relation
   listings             Listing[]
@@ -43,14 +46,18 @@ model User {
 }
 
 model Team {
-  id          String    @id // The service layer will generate this with the `tm_` prefix
+  id          String    @id // Generated with `tm_` prefix in service layer
   name        String
   description String?
+
+  ownerId     String
+  owner       User      @relation("TeamOwner", fields: [ownerId], references: [id])
+
+  members     User[]    @relation("TeamMembers")
+  listings    Listing[]
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  members     User[]
-  listings    Listing[]
 
   @@map("teams")
 }
@@ -62,8 +69,9 @@ model Listing {
   category    ListingCategory
   price       Float
   location    String?
+  images      String[]        @default([])
   isActive    Boolean         @default(true)
-  
+
   // JSON field for dynamic category-specific attributes (e.g. carModel, bedrooms, cuisine)
   attributes  Json?
 

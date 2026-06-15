@@ -2,6 +2,8 @@ import { OpenApiGeneratorV3, OpenAPIRegistry, extendZodWithOpenApi } from '@aste
 import { z } from 'zod';
 
 import { registerAuthSwagger } from '../modules/auth/auth.swagger';
+import { registerListingSwagger } from '../modules/listing/listing.swagger';
+import { registerTeamSwagger } from '../modules/team/team.swagger';
 import { registerUserSwagger } from '../modules/user/user.swagger';
 
 // Extend Zod to support OpenAPI
@@ -19,6 +21,8 @@ const bearerAuth = registry.registerComponent('securitySchemes', 'bearerAuth', {
 // Register Module Routes
 registerAuthSwagger(registry, bearerAuth);
 registerUserSwagger(registry, bearerAuth);
+registerTeamSwagger(registry, bearerAuth);
+registerListingSwagger(registry, bearerAuth);
 
 export const generateSwaggerDocs = () => {
   const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -27,8 +31,8 @@ export const generateSwaggerDocs = () => {
     openapi: '3.0.0',
     info: {
       version: '1.0.0',
-      title: 'Backend API Boilerplate',
-      description: 'API Documentation for the backend boilerplate.'
+      title: 'Rentals Hub N.V. API',
+      description: 'API Documentation for Rentals Hub N.V. — Multi-Service Booking Marketplace.'
     },
     servers: [{ url: '/' }]
   });
