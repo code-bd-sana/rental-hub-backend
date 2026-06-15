@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import config from '../../config';
 import AppError from '../../errors/AppError';
 import { sendEmail } from '../../utils/email';
+import { forgotPasswordTemplate } from '../../utils/emailTemplates/forgotPassword.template';
 import prisma from '../../utils/prisma';
 import type {
   IChangePasswordPayload,
@@ -185,13 +186,8 @@ const forgotPassword = async (payload: IForgotPasswordPayload): Promise<void> =>
     }
   });
 
-  // Send the email with the unhashed 6-digit code
-  const emailHtml = `
-    <h1>Password Reset Request</h1>
-    <p>Your password reset code is: <strong>${resetCode}</strong></p>
-    <p>This code will expire in 15 minutes.</p>
-    <p>If you did not request this, please ignore this email.</p>
-  `;
+  // Send the email with the unhashed 6-digit code using the template
+  const emailHtml = forgotPasswordTemplate(resetCode);
 
   await sendEmail(user.email, 'Password Reset Code', emailHtml);
 };
