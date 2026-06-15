@@ -22,7 +22,7 @@ type UserRecord = {
   id: string;
   name: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: 'GUEST' | 'HOST' | 'ADMIN';
 };
 
 const sanitizeUser = (user: UserRecord): IUserResponse => ({
@@ -50,7 +50,7 @@ const register = async (payload: IUserRegisterPayload): Promise<IUserResponse> =
       name: payload.name,
       email: payload.email,
       password: hashedPassword,
-      role: payload.role ?? 'USER'
+      role: payload.role ?? 'GUEST'
     },
     select: {
       id: true,
@@ -170,7 +170,7 @@ const forgotPassword = async (payload: IForgotPasswordPayload): Promise<void> =>
 
   // Generate a random 6-digit code
   const resetCode = crypto.randomInt(100000, 999999).toString();
-  
+
   // Set expiration to 15 minutes from now
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
@@ -222,7 +222,7 @@ const verifyResetCode = async (
   // We use the current password hash as part of the secret so the token becomes invalid
   // immediately after the password is changed.
   const secret = config.jwt.resetSecret + user.password;
-  
+
   const resetToken = jwt.sign(
     { userId: user.id, email: user.email },
     secret,

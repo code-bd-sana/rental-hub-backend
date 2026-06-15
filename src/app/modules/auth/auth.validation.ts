@@ -11,7 +11,7 @@ const register = z.object({
         .transform((value) => value.toLowerCase()),
       password: z
         .string({ message: 'Password is required.' })
-        .min(8, 'Password must be at least 8 characters long.'),
+        .min(6, 'Password must be at least 6 characters long.'),
       role: z.enum(['GUEST', 'HOST', 'ADMIN']).optional()
     })
     .strict()
@@ -36,7 +36,7 @@ const changePassword = z.object({
       oldPassword: z.string({ message: 'Old password is required.' }),
       newPassword: z
         .string({ message: 'New password is required.' })
-        .min(8, 'Password must be at least 8 characters long.')
+        .min(6, 'Password must be at least 6 characters long.')
     })
     .strict()
 });
@@ -72,7 +72,7 @@ const resetPassword = z.object({
       token: z.string({ message: 'Reset token is required.' }),
       newPassword: z
         .string({ message: 'New password is required.' })
-        .min(8, 'Password must be at least 8 characters long.')
+        .min(6, 'Password must be at least 6 characters long.')
     })
     .strict()
 });

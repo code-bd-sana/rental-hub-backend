@@ -9,7 +9,7 @@ export const registerUserSwagger = (registry: OpenAPIRegistry, bearerAuth: any) 
     id: z.string().openapi({ example: 'uuid-1234' }),
     name: z.string().openapi({ example: 'John Doe' }),
     email: z.string().openapi({ example: 'john@example.com' }),
-    role: z.string().openapi({ example: 'USER' }),
+    role: z.string().openapi({ example: 'GUEST' }),
     createdAt: z.string().openapi({ example: '2023-01-01T00:00:00.000Z' }),
     updatedAt: z.string().openapi({ example: '2023-01-01T00:00:00.000Z' })
   });

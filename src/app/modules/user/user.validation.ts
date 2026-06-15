@@ -3,8 +3,8 @@ import { z } from 'zod';
 const changeRole = z.object({
   body: z
     .object({
-      role: z.enum(['USER', 'ADMIN'], {
-        message: 'Invalid role. Must be USER or ADMIN.'
+      role: z.enum(['GUEST', 'HOST', 'ADMIN'], {
+        message: 'Invalid role. Must be GUEST, HOST, or ADMIN.'
       })
     })
     .strict()

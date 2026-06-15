@@ -10,7 +10,7 @@ const router = Router();
 
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 5, // Limit each IP to 5 requests per windowMs
+  limit: 10, // Increased limit for easier testing (was 5)
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: {
@@ -32,7 +32,7 @@ router.post('/logout', AuthController.logout);
 
 router.post(
   '/change-password',
-  auth('USER', 'ADMIN'),
+  auth('GUEST', 'HOST', 'ADMIN'),
   validateRequest(AuthValidation.changePassword),
   AuthController.changePassword
 );

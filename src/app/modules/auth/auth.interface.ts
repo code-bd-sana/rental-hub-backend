@@ -4,7 +4,7 @@ export interface IUserRegisterPayload {
   name: string;
   email: string;
   password: string;
-  role?: 'USER';
+  role?: 'GUEST' | 'HOST' | 'ADMIN';
 }
 
 export interface IUserLoginPayload {

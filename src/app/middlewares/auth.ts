@@ -16,7 +16,7 @@ const isAuthUser = (payload: unknown): payload is IAuthUser => {
   return (
     typeof candidate.userId === 'string' &&
     typeof candidate.email === 'string' &&
-    (role === 'USER' || role === 'ADMIN')
+    (role === 'GUEST' || role === 'HOST' || role === 'ADMIN')
   );
 };
 
