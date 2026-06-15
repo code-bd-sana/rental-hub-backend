@@ -3,6 +3,7 @@ import cors, { type CorsOptions } from 'cors';
 import express, { type Application, type Request, type Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 
 import config from './app/config';
@@ -23,6 +24,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(helmet());
+app.use(morgan('dev'));
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
