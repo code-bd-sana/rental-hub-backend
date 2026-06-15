@@ -2,12 +2,14 @@ import app from './app';
 import config from './app/config';
 import { logger } from './app/utils/logger';
 import prisma, { pool } from './app/utils/prisma';
+import { printRoutes } from './app/utils/routePrinter';
 
 const server = app.listen(config.port);
 
 server.on('listening', () => {
   logger.info(`Server is running on port ${config.port}`);
   logger.info(`Swagger docs available at http://localhost:${config.port}/api/docs`);
+  printRoutes(app);
 });
 
 server.on('error', (error: NodeJS.ErrnoException) => {
