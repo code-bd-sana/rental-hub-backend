@@ -7,6 +7,7 @@ const server = app.listen(config.port);
 
 server.on('listening', () => {
   logger.info(`Server is running on port ${config.port}`);
+  logger.info(`Swagger docs available at http://localhost:${config.port}/api/docs`);
 });
 
 server.on('error', (error: NodeJS.ErrnoException) => {
