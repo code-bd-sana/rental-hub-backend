@@ -1,4 +1,6 @@
-export type UserRole = 'USER' | 'ADMIN';
+import { Role } from '@prisma/client';
+
+export type UserRole = Role;
 
 export interface IAuthUser {
   userId: string;
