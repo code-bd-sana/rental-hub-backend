@@ -1,17 +1,10 @@
-import type { RequestHandler } from 'express';
-
-import AppError from '../../errors/AppError';
+import type { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserService } from './user.service';
 
-const getMe: RequestHandler = catchAsync(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(401, 'You are not authorized.');
-  }
-
-  const userId = req.user.userId;
-  const result = await UserService.getMe(userId);
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getMe(req.user!.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -21,26 +14,46 @@ const getMe: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-const getAllUsers: RequestHandler = catchAsync(async (req, res) => {
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.getAllUsers(req.query);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Users retrieved successfully.',
-    meta: result.meta,
-    data: result.data
+    data: result
   });
 });
 
-const changeRole: RequestHandler = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await UserService.changeRole(id as string, req.body);
+const createAgent = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.createAgent(req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Agent created successfully.',
+    data: result
+  });
+});
+
+const createLoader = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.createLoader(req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Loader created successfully.',
+    data: result
+  });
+});
+
+const approveHost = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.approveHost(req.params.id as string, req.body.status);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'User role updated successfully.',
+    message: 'Host approval status updated successfully.',
     data: result
   });
 });
@@ -48,5 +61,7 @@ const changeRole: RequestHandler = catchAsync(async (req, res) => {
 export const UserController = {
   getMe,
   getAllUsers,
-  changeRole
+  createAgent,
+  createLoader,
+  approveHost
 };

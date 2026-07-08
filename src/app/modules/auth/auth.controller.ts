@@ -1,76 +1,71 @@
-import type { RequestHandler } from 'express';
-
-import AppError from '../../errors/AppError';
-import config from '../../config';
+import type { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthService } from './auth.service';
 
-const register: RequestHandler = catchAsync(async (req, res) => {
-  const result = await AuthService.register(req.body);
+const registerGuest = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.registerGuest(req.body);
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'User registered successfully.',
+    message: 'Guest registered successfully.',
     data: result
   });
 });
 
-const login: RequestHandler = catchAsync(async (req, res) => {
-  const result = await AuthService.login(req.body);
-  const { refreshToken, ...data } = result;
+const registerHost = catchAsync(async (req: Request, res: Response) => {
+  // Map files uploaded by multer (Host documents)
+  const files = req.files as Express.Multer.File[] | undefined;
+  
+  // Note: For now, we simulate file processing, but actually the adapter pattern 
+  // FileUploadService will be called here. We'll wire that in the next step when we process files properly.
+  // We'll pass empty docs array to service for now, focusing on the controller logic.
+  const documentUrls: { type: string; url: string }[] = [];
 
-  res.cookie('refreshToken', refreshToken, {
-    secure: config.nodeEnv === 'production',
+  const result = await AuthService.registerHost(req.body, documentUrls);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Host registered successfully.',
+    data: result
+  });
+});
+
+const login = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.login(req.body);
+
+  res.cookie('refreshToken', result.refreshToken, {
+    secure: true,
     httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    sameSite: 'none'
   });
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'User logged in successfully.',
-    data: data
+    data: {
+      accessToken: result.accessToken,
+      user: result.user
+    }
   });
 });
 
-const refreshToken: RequestHandler = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies;
-  const result = await AuthService.refreshToken(refreshToken);
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.refreshToken(req.cookies.refreshToken);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Access token generated successfully.',
+    message: 'Token refreshed successfully.',
     data: result
   });
 });
 
-const logout: RequestHandler = catchAsync(async (_req, res) => {
-  res.clearCookie('refreshToken', {
-    secure: config.nodeEnv === 'production',
-    httpOnly: true,
-    sameSite: 'strict'
-  });
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Logged out successfully.',
-    data: null
-  });
-});
-
-const changePassword: RequestHandler = catchAsync(async (req, res) => {
-  // `req.user` is set by the auth middleware
-  if (!req.user) {
-    throw new AppError(401, 'You are not authorized.');
-  }
-  const userId = req.user.userId;
-
-  await AuthService.changePassword(userId, req.body);
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  await AuthService.changePassword(req.user!.userId, req.body);
 
   sendResponse(res, {
     statusCode: 200,
@@ -80,44 +75,44 @@ const changePassword: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-const forgotPassword: RequestHandler = catchAsync(async (req, res) => {
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   await AuthService.forgotPassword(req.body);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'If the email exists, a password reset code has been sent.',
+    message: 'Password reset code sent successfully.',
     data: null
   });
 });
 
-const verifyResetCode: RequestHandler = catchAsync(async (req, res) => {
+const verifyResetCode = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.verifyResetCode(req.body);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Code verified successfully. You can now reset your password.',
-    data: result // Contains the temporary reset token
+    message: 'Reset code verified successfully.',
+    data: result
   });
 });
 
-const resetPassword: RequestHandler = catchAsync(async (req, res) => {
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
   await AuthService.resetPassword(req.body);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Password has been reset successfully.',
+    message: 'Password reset successfully.',
     data: null
   });
 });
 
 export const AuthController = {
-  register,
+  registerGuest,
+  registerHost,
   login,
   refreshToken,
-  logout,
   changePassword,
   forgotPassword,
   verifyResetCode,

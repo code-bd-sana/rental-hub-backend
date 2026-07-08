@@ -1,26 +1,31 @@
-import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
-
+import express from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
+import { fileUploadMiddleware } from '../../middlewares/fileUpload';
 import { AuthController } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 
-const router = Router();
+const router = express.Router();
 
-const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 5, // Limit each IP to 5 requests per windowMs
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Too many authentication attempts. Please try again after 15 minutes.'
-  }
-});
+router.post(
+  '/register/guest',
+  validateRequest(AuthValidation.registerGuest),
+  AuthController.registerGuest
+);
 
-router.post('/register', authRateLimiter, validateRequest(AuthValidation.register), AuthController.register);
-router.post('/login', authRateLimiter, validateRequest(AuthValidation.login), AuthController.login);
+// We intercept multipart/form-data with fileUploadMiddleware.array('documents')
+router.post(
+  '/register/host',
+  fileUploadMiddleware.array('documents', 10), // Limit to 10 files
+  validateRequest(AuthValidation.registerHost),
+  AuthController.registerHost
+);
+
+router.post(
+  '/login',
+  validateRequest(AuthValidation.login),
+  AuthController.login
+);
 
 router.post(
   '/refresh-token',
@@ -28,32 +33,27 @@ router.post(
   AuthController.refreshToken
 );
 
-router.post('/logout', AuthController.logout);
-
 router.post(
   '/change-password',
-  auth('USER', 'ADMIN'),
+  auth('SUPER_ADMIN', 'AGENT', 'LOADER', 'HOST', 'GUEST'),
   validateRequest(AuthValidation.changePassword),
   AuthController.changePassword
 );
 
 router.post(
   '/forgot-password',
-  authRateLimiter,
   validateRequest(AuthValidation.forgotPassword),
   AuthController.forgotPassword
 );
 
 router.post(
   '/verify-reset-code',
-  authRateLimiter,
   validateRequest(AuthValidation.verifyResetCode),
   AuthController.verifyResetCode
 );
 
 router.post(
   '/reset-password',
-  authRateLimiter,
   validateRequest(AuthValidation.resetPassword),
   AuthController.resetPassword
 );

@@ -1,19 +1,42 @@
-import { Router } from 'express';
-
+import express from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/me', auth('USER', 'ADMIN'), UserController.getMe);
-router.get('/', auth('ADMIN'), UserController.getAllUsers);
+router.get(
+  '/me',
+  auth('SUPER_ADMIN', 'AGENT', 'LOADER', 'HOST', 'GUEST'),
+  UserController.getMe
+);
+
+router.get(
+  '/',
+  auth('SUPER_ADMIN', 'AGENT'),
+  UserController.getAllUsers
+);
+
+router.post(
+  '/agent',
+  auth('SUPER_ADMIN'),
+  validateRequest(UserValidation.createAgent),
+  UserController.createAgent
+);
+
+router.post(
+  '/loader',
+  auth('SUPER_ADMIN', 'AGENT'),
+  validateRequest(UserValidation.createLoader),
+  UserController.createLoader
+);
+
 router.patch(
-  '/:id/role',
-  auth('ADMIN'),
-  validateRequest(UserValidation.changeRole),
-  UserController.changeRole
+  '/host/:id/approve',
+  auth('SUPER_ADMIN', 'AGENT'),
+  validateRequest(UserValidation.approveHost),
+  UserController.approveHost
 );
 
 export const UserRoutes = router;

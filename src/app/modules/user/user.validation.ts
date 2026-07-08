@@ -6,7 +6,7 @@ const createAgent = z.object({
     email: z.string({ message: 'Email is required.' }).email().transform(v => v.toLowerCase()),
     phone: z.string().optional(),
     password: z.string().min(8),
-    permissions: z.union([z.string(), z.array(z.string()), z.record(z.any())]).optional()
+    permissions: z.any().optional()
   })
 });
 
