@@ -6,21 +6,127 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  SUPER_ADMIN
+  AGENT
+  LOADER
+  HOST
+  GUEST
+}
+
 model User {
-  id                   String    @id @default(uuid())
-  name                 String
-  email                String    @unique
-  password             String
-  role                 Role      @default(USER)
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  phone    String?
+  password String
+  role     Role
+  isActive Boolean @default(true)
+
   passwordResetCode    String?
   passwordResetExpires DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guestProfile GuestProfile?
+  agentProfile AgentProfile?
+  hostProfile  HostProfile?
 
   @@map("users")
 }
 
-enum Role {
-  USER
-  ADMIN
+model GuestProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  countriesToVisit   String[]
+  interests          String?
+  allergies          String?
+  extraText          String?
+  subscriptionStatus Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("guest_profiles")
+}
+
+model AgentProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  permissions Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("agent_profiles")
+}
+
+enum HostType {
+  RENTAL_PROPERTY_REGISTERED
+  INDIVIDUAL_PROPERTY
+  CAR_RENTAL
+  RESTAURANT
+  BARBERSHOP
+  SPA_SALON
+}
+
+enum HostApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+model HostProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hostTypes          HostType[]
+  businessName       String?
+  location           String?
+  address            String?
+  country            String?
+  city               String?
+  state              String?
+  registrationNumber String?
+  description        String?
+
+  approvalStatus HostApprovalStatus @default(PENDING)
+
+  documents HostDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("host_profiles")
+}
+
+enum DocumentType {
+  GOV_ID
+  KKF_CERTIFICATE
+  OWNERSHIP_PROOF
+  PROPERTY_INSURANCE
+  TAX_DOCUMENT
+  HANDEL_PERMIT
+  LOGO
+  OTHER
+}
+
+model HostDocument {
+  id          String      @id @default(uuid())
+  hostId      String
+  hostProfile HostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  documentType DocumentType
+  fileUrl      String
+
+  uploadedAt DateTime @default(now())
+
+  @@map("host_documents")
 }
