@@ -108,6 +108,13 @@ const login = async (payload: any) => {
   const isPasswordMatched = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordMatched) throw new AppError(401, 'Invalid email or password.');
 
+  if (user.role === 'HOST') {
+    const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: user.id } });
+    if (hostProfile?.approvalStatus === 'SUSPENDED') {
+      throw new AppError(403, 'Your account has been suspended by an administrator.');
+    }
+  }
+
   const authPayload = { userId: user.id, email: user.email, role: user.role };
   const accessToken = jwt.sign(authPayload, config.jwt.accessSecret, { expiresIn: config.jwt.accessExpiresIn });
   const refreshToken = jwt.sign(authPayload, config.jwt.refreshSecret, { expiresIn: config.jwt.refreshExpiresIn });

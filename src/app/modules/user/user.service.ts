@@ -31,6 +31,19 @@ const getAllUsers = async (query: Record<string, unknown>) => {
   return { meta: { total, page: Number(query.page) || 1, limit: Number(query.limit) || 10 }, data: users };
 };
 
+const getAllHosts = async () => {
+  const hosts = await prisma.hostProfile.findMany({
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, phone: true, role: true, isActive: true }
+      },
+      documents: true
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+  return hosts;
+};
+
 const createAgent = async (payload: any) => {
   const existingUser = await prisma.user.findUnique({ where: { email: payload.email } });
   if (existingUser) throw new AppError(409, 'Email already exists.');
@@ -95,6 +108,7 @@ const approveHost = async (hostProfileId: string, status: HostApprovalStatus) =>
 export const UserService = {
   getMe,
   getAllUsers,
+  getAllHosts,
   createAgent,
   createLoader,
   approveHost

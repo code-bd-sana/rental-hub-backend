@@ -18,6 +18,12 @@ router.get(
   UserController.getAllUsers
 );
 
+router.get(
+  '/hosts',
+  auth('SUPER_ADMIN', 'AGENT'),
+  UserController.getAllHosts
+);
+
 router.post(
   '/agent',
   auth('SUPER_ADMIN'),

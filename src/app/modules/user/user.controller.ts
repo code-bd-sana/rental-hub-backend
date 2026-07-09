@@ -25,6 +25,17 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllHosts = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getAllHosts();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Hosts retrieved successfully.',
+    data: result
+  });
+});
+
 const createAgent = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.createAgent(req.body);
 
@@ -61,6 +72,7 @@ const approveHost = catchAsync(async (req: Request, res: Response) => {
 export const UserController = {
   getMe,
   getAllUsers,
+  getAllHosts,
   createAgent,
   createLoader,
   approveHost
