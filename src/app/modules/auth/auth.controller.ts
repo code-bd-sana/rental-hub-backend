@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthService } from './auth.service';
+import { fileUploadService } from '../../utils/FileUploadService';
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerGuest(req.body);
@@ -15,13 +16,18 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 });
 
 const registerHost = catchAsync(async (req: Request, res: Response) => {
-  // Map files uploaded by multer (Host documents)
   const files = req.files as Express.Multer.File[] | undefined;
-  
-  // Note: For now, we simulate file processing, but actually the adapter pattern 
-  // FileUploadService will be called here. We'll wire that in the next step when we process files properly.
-  // We'll pass empty docs array to service for now, focusing on the controller logic.
   const documentUrls: { type: string; url: string }[] = [];
+
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const savedUrl = await fileUploadService.uploadFile(file, 'hosts/documents');
+      documentUrls.push({
+        type: 'OTHER', // Default to OTHER since frontend doesn't categorize them yet
+        url: savedUrl
+      });
+    }
+  }
 
   const result = await AuthService.registerHost(req.body, documentUrls);
 
