@@ -4,30 +4,39 @@ import prisma from '../src/app/utils/prisma';
 
 async function seedSuperAdmin() {
   try {
+    const adminEmail = config.admin.email;
+    const adminPassword = config.admin.password;
+    const hashedPassword = await bcrypt.hash(adminPassword, config.bcryptSaltRounds);
+
     const existingAdmin = await prisma.user.findFirst({
       where: { role: 'SUPER_ADMIN' }
     });
 
     if (existingAdmin) {
-      console.log('✅ Super Admin already exists!');
-      return;
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: {
+          email: adminEmail,
+          password: hashedPassword,
+          name: 'Super Admin'
+        }
+      });
+      console.log('✅ Super Admin overridden/updated successfully!');
+    } else {
+      await prisma.user.create({
+        data: {
+          name: 'Super Admin',
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'SUPER_ADMIN',
+          phone: '+1234567890'
+        }
+      });
+      console.log('🚀 Super Admin created successfully!');
     }
 
-    const hashedPassword = await bcrypt.hash('admin@123', config.bcryptSaltRounds);
-
-    await prisma.user.create({
-      data: {
-        name: 'Super Admin',
-        email: 'admin@gmail.com',
-        password: hashedPassword,
-        role: 'SUPER_ADMIN',
-        phone: '+1234567890'
-      }
-    });
-
-    console.log('🚀 Super Admin created successfully!');
-    console.log('Email: superadmin@rentalhub.com');
-    console.log('Password: superadmin123');
+    console.log(`Email: ${adminEmail}`);
+    console.log(`Password: ${adminPassword}`);
   } catch (error) {
     console.error('❌ Failed to seed Super Admin:', error);
   } finally {
