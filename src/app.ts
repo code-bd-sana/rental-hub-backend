@@ -14,10 +14,20 @@ import sendResponse from './app/utils/sendResponse';
 const app: Application = express();
 
 const corsOptions: CorsOptions = {
-  origin:
-    config.corsOrigin === '*'
-      ? '*'
-      : config.corsOrigin.split(',').map((origin) => origin.trim()),
+  origin: (origin, callback) => {
+    // If CORS_ORIGIN is '*', we reflect the origin to allow credentials,
+    // or you can strictly allow http://localhost:3000
+    if (!origin || config.corsOrigin === '*') {
+      callback(null, true);
+    } else {
+      const allowedOrigins = config.corsOrigin.split(',').map((o) => o.trim());
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true
 };
 
