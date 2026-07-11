@@ -14,6 +14,17 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateMe = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.updateMe(req.user!.userId, req.user!.role, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User profile updated successfully.',
+    data: result
+  });
+});
+
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.getAllUsers(req.query);
 
@@ -71,6 +82,7 @@ const approveHost = catchAsync(async (req: Request, res: Response) => {
 
 export const UserController = {
   getMe,
+  updateMe,
   getAllUsers,
   getAllHosts,
   createAgent,

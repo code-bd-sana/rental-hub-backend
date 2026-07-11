@@ -47,6 +47,17 @@ model GuestProfile {
   extraText          String?
   subscriptionStatus Boolean  @default(false)
 
+  country                  String?
+  city                     String?
+  emergencyContactName     String?
+  emergencyContactRelation String?
+  emergencyContactPhone    String?
+  currency                 String? @default("USD")
+  language                 String? @default("en")
+  emailNotifications       Boolean @default(true)
+  smsNotifications         Boolean @default(true)
+  marketingEmails          Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

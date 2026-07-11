@@ -15,10 +15,46 @@ const sanitizeUser = (user: any) => ({
 const getMe = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, role: true, createdAt: true, updatedAt: true }
+    select: { id: true, name: true, email: true, phone: true, role: true, isActive: true, createdAt: true, updatedAt: true, guestProfile: true, hostProfile: true, agentProfile: true }
   });
   if (!user) throw new AppError(404, 'User not found.');
   return user;
+};
+
+const updateMe = async (userId: string, role: string, payload: any) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found.');
+
+  const { name, phone, email, ...profileData } = payload;
+  
+  if (email && email !== user.email) {
+      const exists = await prisma.user.findUnique({ where: { email } });
+      if (exists) throw new AppError(409, 'Email already exists.');
+  }
+
+  const updatedUser = await prisma.$transaction(async (tx) => {
+    const updatedUserBase = await tx.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(phone !== undefined && { phone }),
+        ...(email !== undefined && { email })
+      },
+      select: { id: true, name: true, email: true, phone: true, role: true, guestProfile: true, hostProfile: true, agentProfile: true }
+    });
+
+    if (role === 'GUEST' && Object.keys(profileData).length > 0) {
+      const guestProfile = await tx.guestProfile.update({
+        where: { userId },
+        data: profileData
+      });
+      updatedUserBase.guestProfile = guestProfile as any;
+    }
+
+    return updatedUserBase;
+  });
+
+  return updatedUser;
 };
 
 const getAllUsers = async (query: Record<string, unknown>) => {
@@ -107,6 +143,7 @@ const approveHost = async (hostProfileId: string, status: HostApprovalStatus) =>
 
 export const UserService = {
   getMe,
+  updateMe,
   getAllUsers,
   getAllHosts,
   createAgent,

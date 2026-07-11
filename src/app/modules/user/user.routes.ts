@@ -12,6 +12,12 @@ router.get(
   UserController.getMe
 );
 
+router.patch(
+  '/me',
+  auth('SUPER_ADMIN', 'AGENT', 'LOADER', 'HOST', 'GUEST'),
+  UserController.updateMe
+);
+
 router.get(
   '/',
   auth('SUPER_ADMIN', 'AGENT'),
