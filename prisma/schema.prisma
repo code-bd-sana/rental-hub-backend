@@ -110,6 +110,12 @@ model HostProfile {
 
   approvalStatus HostApprovalStatus @default(PENDING)
 
+  payoutAccount      String?
+  billingCurrency    String? @default("USD")
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(true)
+  marketingEmails    Boolean @default(false)
+
   documents HostDocument[]
 
   createdAt DateTime @default(now())

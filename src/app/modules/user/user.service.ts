@@ -51,6 +51,14 @@ const updateMe = async (userId: string, role: string, payload: any) => {
       updatedUserBase.guestProfile = guestProfile as any;
     }
 
+    if (role === 'HOST' && Object.keys(profileData).length > 0) {
+      const hostProfile = await tx.hostProfile.update({
+        where: { userId },
+        data: profileData
+      });
+      updatedUserBase.hostProfile = hostProfile as any;
+    }
+
     return updatedUserBase;
   });
 
