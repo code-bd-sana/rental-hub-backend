@@ -14,6 +14,19 @@ enum Role {
   GUEST
 }
 
+enum ListingCategory {
+  STAY
+  CAR
+  SERVICE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
   id       String  @id @default(uuid())
   name     String
@@ -58,8 +71,9 @@ model GuestProfile {
   smsNotifications         Boolean @default(true)
   marketingEmails          Boolean @default(false)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  bookings  Booking[]
 
   @@map("guest_profiles")
 }
@@ -117,6 +131,7 @@ model HostProfile {
   marketingEmails    Boolean @default(false)
 
   documents HostDocument[]
+  listings  Listing[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -146,4 +161,127 @@ model HostDocument {
   uploadedAt DateTime @default(now())
 
   @@map("host_documents")
+}
+
+enum ListingApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+model Listing {
+  id             String                @id @default(uuid())
+  hostId         String
+  host           HostProfile           @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  category       ListingCategory
+  title          String
+  description    String?
+  location       String?
+  city           String?
+  country        String?
+  rating         Float                 @default(0.0)
+  reviewCount    Int                   @default(0)
+  isActive       Boolean               @default(true)
+  approvalStatus ListingApprovalStatus @default(PENDING)
+
+  images ListingImage[]
+
+  stayDetails    StayDetails?
+  carDetails     CarDetails?
+  serviceDetails ServiceDetails?
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("listings")
+}
+
+model ListingImage {
+  id        String   @id @default(uuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  isHero    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("listing_images")
+}
+
+model StayDetails {
+  id            String   @id @default(uuid())
+  listingId     String   @unique
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  pricePerNight Float
+  amenities     String[]
+
+  @@map("stay_details")
+}
+
+model CarDetails {
+  id            String   @id @default(uuid())
+  listingId     String   @unique
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  dailyRate     Float
+  carType       String
+  seats         Int
+  transmission  String
+  doors         Int?
+  bags          Json?
+  features      String[]
+  includedItems String[]
+
+  fuelOptions     Json?
+  protectionPlans Json?
+  extras          Json?
+
+  pickupLocations String[]
+  returnLocations String[]
+
+  @@map("car_details")
+}
+
+model ServiceDetails {
+  id          String  @id @default(uuid())
+  listingId   String  @unique
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  serviceType String
+
+  packages ServicePackage[]
+
+  @@map("service_details")
+}
+
+model ServicePackage {
+  id               String         @id @default(uuid())
+  serviceDetailsId String
+  serviceDetails   ServiceDetails @relation(fields: [serviceDetailsId], references: [id], onDelete: Cascade)
+  name             String
+  price            Float
+
+  @@map("service_packages")
+}
+
+model Booking {
+  id        String       @id @default(uuid())
+  guestId   String
+  guest     GuestProfile @relation(fields: [guestId], references: [id])
+  listingId String
+  listing   Listing      @relation(fields: [listingId], references: [id])
+
+  status BookingStatus @default(PENDING)
+
+  totalAmount   Float
+  depositAmount Float?
+
+  bookingData Json
+
+  otpCode String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bookings")
 }
