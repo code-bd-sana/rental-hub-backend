@@ -246,10 +246,11 @@ model CarDetails {
 }
 
 model ServiceDetails {
-  id          String  @id @default(uuid())
-  listingId   String  @unique
-  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  serviceType String
+  id               String           @id @default(uuid())
+  listingId        String           @unique
+  listing          Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  serviceType      String
+  availableTimeSlots String[]
 
   packages ServicePackage[]
 
@@ -262,6 +263,7 @@ model ServicePackage {
   serviceDetails   ServiceDetails @relation(fields: [serviceDetailsId], references: [id], onDelete: Cascade)
   name             String
   price            Float
+  imageUrl         String?
 
   @@map("service_packages")
 }

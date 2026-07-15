@@ -48,8 +48,8 @@ export const uploadToS3 = async (
     const publicUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
     
     return publicUrl;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading file to S3:', error);
-    throw new Error('Failed to upload image to S3');
+    throw new Error(`Failed to upload image to S3: ${(error as Error).message}`);
   }
 };

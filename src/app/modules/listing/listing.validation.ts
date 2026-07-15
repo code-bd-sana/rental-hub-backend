@@ -35,9 +35,11 @@ export const createListingZodSchema = z.object({
 
     serviceDetails: z.object({
       serviceType: z.string(),
+      availableTimeSlots: z.array(z.string()).optional(),
       packages: z.array(z.object({
         name: z.string(),
-        price: z.number().min(0)
+        price: z.number().min(0),
+        imageUrl: z.string().url().optional().or(z.literal(''))
       }))
     }).optional(),
 
@@ -98,9 +100,11 @@ const updateListingZodSchema = z.object({
 
     serviceDetails: z.object({
       serviceType: z.string().optional(),
+      availableTimeSlots: z.array(z.string()).optional(),
       packages: z.array(z.object({
         name: z.string(),
-        price: z.number().min(0)
+        price: z.number().min(0),
+        imageUrl: z.string().url().optional().or(z.literal(''))
       })).optional()
     }).optional(),
 
