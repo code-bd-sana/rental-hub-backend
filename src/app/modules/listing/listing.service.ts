@@ -1,6 +1,7 @@
 import { Listing, Prisma } from '@prisma/client';
 import prisma from '../../utils/prisma';
 import AppError from '../../errors/AppError';
+import { deleteFromS3 } from '../../utils/s3.utils';
 
 const createListing = async (hostId: string, payload: any) => {
   // First, verify the host profile exists
@@ -202,7 +203,14 @@ const getMyListings = async (hostId: string) => {
 };
 
 const updateListing = async (listingId: string, hostId: string, payload: any) => {
-  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+  const listing = await prisma.listing.findUnique({ 
+    where: { id: listingId },
+    include: {
+      images: true,
+      serviceDetails: { include: { packages: true } },
+      foodDetails: { include: { items: true } }
+    }
+  });
   
   if (!listing) {
     throw new AppError(404, 'Listing not found');
@@ -210,6 +218,40 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
 
   if (listing.hostId !== hostId) {
     throw new AppError(403, 'You are not authorized to update this listing');
+  }
+
+  const s3ImagesToDelete: string[] = [];
+
+  // Check main images
+  if (payload.images && listing.images) {
+    const newImageUrls = payload.images;
+    const existingImageUrls = listing.images.map(img => img.url);
+    const removedImages = existingImageUrls.filter(url => !newImageUrls.includes(url));
+    s3ImagesToDelete.push(...removedImages);
+  }
+
+  // Check Service Packages images
+  if (payload.serviceDetails?.packages && listing.serviceDetails?.packages) {
+    const newPackageImages = payload.serviceDetails.packages
+      .map((pkg: any) => pkg.imageUrl)
+      .filter(Boolean) as string[];
+    const existingPackageImages = listing.serviceDetails.packages
+      .map(pkg => pkg.imageUrl)
+      .filter(Boolean) as string[];
+    const removedPkgImages = existingPackageImages.filter(url => !newPackageImages.includes(url));
+    s3ImagesToDelete.push(...removedPkgImages);
+  }
+
+  // Check Food Items images
+  if (payload.foodDetails?.items && listing.foodDetails?.items) {
+    const newItemImages = payload.foodDetails.items
+      .map((item: any) => item.imageUrl)
+      .filter(Boolean) as string[];
+    const existingItemImages = listing.foodDetails.items
+      .map(item => item.imageUrl)
+      .filter(Boolean) as string[];
+    const removedItemImages = existingItemImages.filter(url => !newItemImages.includes(url));
+    s3ImagesToDelete.push(...removedItemImages);
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -294,18 +336,52 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
     return updatedListing;
   });
 
+  // After successful DB transaction, delete orphaned images from S3
+  if (s3ImagesToDelete.length > 0) {
+    await Promise.allSettled(s3ImagesToDelete.map(url => deleteFromS3(url)));
+  }
+
   return await getListingById(result.id);
 };
 
-const deleteListing = async (listingId: string, hostId: string) => {
-  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+const deleteListing = async (listingId: string) => {
+  const listing = await prisma.listing.findUnique({ 
+    where: { id: listingId },
+    include: {
+      images: true,
+      serviceDetails: { include: { packages: true } },
+      foodDetails: { include: { items: true } }
+    }
+  });
   
   if (!listing) {
     throw new AppError(404, 'Listing not found');
   }
 
-  if (listing.hostId !== hostId) {
-    throw new AppError(403, 'You are not authorized to delete this listing');
+  // Collect all associated S3 images to delete
+  const imagesToDelete: string[] = [];
+  
+  if (listing.images && listing.images.length > 0) {
+    imagesToDelete.push(...listing.images.map(img => img.url));
+  }
+
+  if (listing.serviceDetails && listing.serviceDetails.packages) {
+    const pkgImages = listing.serviceDetails.packages
+      .filter(pkg => pkg.imageUrl)
+      .map(pkg => pkg.imageUrl as string);
+    imagesToDelete.push(...pkgImages);
+  }
+
+  if (listing.foodDetails && listing.foodDetails.items) {
+    const itemImages = listing.foodDetails.items
+      .filter(item => item.imageUrl)
+      .map(item => item.imageUrl as string);
+    imagesToDelete.push(...itemImages);
+  }
+
+  // Delete all collected images from S3 concurrently
+  if (imagesToDelete.length > 0) {
+    await Promise.allSettled(imagesToDelete.map(url => deleteFromS3(url)));
   }
 
   await prisma.listing.delete({

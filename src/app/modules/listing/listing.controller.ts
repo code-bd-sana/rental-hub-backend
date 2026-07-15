@@ -96,7 +96,7 @@ const updateListing = catchAsync(async (req: Request, res: Response) => {
     return sendResponse(res, { statusCode: 404, success: false, message: 'Host profile not found', data: null });
   }
 
-  const result = await ListingService.updateListing(id, hostProfile.id, req.body);
+  const result = await ListingService.updateListing(id as string, hostProfile.id, req.body);
 
   sendResponse(res, {
     statusCode: 200,
@@ -108,18 +108,8 @@ const updateListing = catchAsync(async (req: Request, res: Response) => {
 
 const deleteListing = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const user = (req as any).user;
   
-  let hostId = '';
-  if (user.role === 'HOST') {
-    const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: user.userId } });
-    if (!hostProfile) {
-      return sendResponse(res, { statusCode: 404, success: false, message: 'Host profile not found', data: null });
-    }
-    hostId = hostProfile.id;
-  }
-
-  const result = await ListingService.deleteListing(id, hostId);
+  const result = await ListingService.deleteListing(id as string);
 
   sendResponse(res, {
     statusCode: 200,

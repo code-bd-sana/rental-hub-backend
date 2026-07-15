@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -51,5 +51,35 @@ export const uploadToS3 = async (
   } catch (error: any) {
     console.error('Error uploading file to S3:', error);
     throw new Error(`Failed to upload image to S3: ${(error as Error).message}`);
+  }
+};
+
+/**
+ * Deletes a file from AWS S3 using its public URL
+ * @param fileUrl - The public URL of the file to delete
+ */
+export const deleteFromS3 = async (fileUrl: string): Promise<void> => {
+  const bucketName = process.env.AWS_S3_BUCKET_NAME;
+  
+  if (!bucketName) {
+    throw new Error('AWS_S3_BUCKET_NAME is not defined in environment variables');
+  }
+
+  try {
+    // Extract the key from the URL
+    // Format: https://bucket.s3.region.amazonaws.com/folder/file.ext
+    const urlObj = new URL(fileUrl);
+    // urlObj.pathname is typically "/folder/file.ext", we need "folder/file.ext"
+    const key = urlObj.pathname.startsWith('/') ? urlObj.pathname.substring(1) : urlObj.pathname;
+
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    await s3Client.send(command);
+  } catch (error: any) {
+    console.error('Error deleting file from S3:', error);
+    // We don't throw error here to prevent blocking DB deletion if S3 delete fails
   }
 };
