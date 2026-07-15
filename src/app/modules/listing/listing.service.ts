@@ -344,7 +344,7 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
   return await getListingById(result.id);
 };
 
-const deleteListing = async (listingId: string) => {
+const deleteListing = async (listingId: string, hostId: string, userRole?: string) => {
   const listing = await prisma.listing.findUnique({ 
     where: { id: listingId },
     include: {
@@ -356,6 +356,11 @@ const deleteListing = async (listingId: string) => {
   
   if (!listing) {
     throw new AppError(404, 'Listing not found');
+  }
+
+  // Bypass hostId check if the user is a SUPER_ADMIN
+  if (userRole !== 'SUPER_ADMIN' && listing.hostId !== hostId) {
+    throw new AppError(403, 'You are not authorized to delete this listing');
   }
 
   // Collect all associated S3 images to delete

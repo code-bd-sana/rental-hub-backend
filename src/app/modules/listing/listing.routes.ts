@@ -27,7 +27,7 @@ router.patch(
 
 router.delete(
   '/:id',
-  auth('SUPER_ADMIN'),
+  auth('HOST', 'SUPER_ADMIN'),
   ListingController.deleteListing
 );
 
