@@ -5,6 +5,7 @@ import { UserRoutes } from '../modules/user/user.routes';
 import { ListingRoutes } from '../modules/listing/listing.routes';
 import { UploadRoutes } from '../modules/upload/upload.routes';
 import { BookingRoutes } from '../modules/booking/booking.routes';
+import { CountryRoutes } from '../modules/country/country.routes';
 
 const router = Router();
 
@@ -28,6 +29,10 @@ const moduleRoutes = [
   {
     path: '/bookings',
     route: BookingRoutes
+  },
+  {
+    path: '/countries',
+    route: CountryRoutes
   }
 ];
 
