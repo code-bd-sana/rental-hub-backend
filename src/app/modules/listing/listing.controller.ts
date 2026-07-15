@@ -11,7 +11,7 @@ const createListing = catchAsync(async (req: Request, res: Response) => {
   // Need to find hostId for this user. We assume it's passed or fetched.
   // For safety, let's fetch it if not provided in body (or just require the user to have a hostProfile).
   const hostProfile = await prisma.hostProfile.findUnique({
-    where: { userId: user.id }
+    where: { userId: user.userId }
   });
   
   if (!hostProfile) {
@@ -69,9 +69,72 @@ const approveListing = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyListings = catchAsync(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: user.userId } });
+  
+  if (!hostProfile) {
+    return sendResponse(res, { statusCode: 404, success: false, message: 'Host profile not found', data: null });
+  }
+
+  const result = await ListingService.getMyListings(hostProfile.id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'My listings fetched successfully',
+    data: result,
+  });
+});
+
+const updateListing = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = (req as any).user;
+  const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: user.userId } });
+  
+  if (!hostProfile) {
+    return sendResponse(res, { statusCode: 404, success: false, message: 'Host profile not found', data: null });
+  }
+
+  const result = await ListingService.updateListing(id, hostProfile.id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Listing updated successfully',
+    data: result,
+  });
+});
+
+const deleteListing = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = (req as any).user;
+  
+  let hostId = '';
+  if (user.role === 'HOST') {
+    const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: user.userId } });
+    if (!hostProfile) {
+      return sendResponse(res, { statusCode: 404, success: false, message: 'Host profile not found', data: null });
+    }
+    hostId = hostProfile.id;
+  }
+
+  const result = await ListingService.deleteListing(id, hostId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Listing deleted successfully',
+    data: result,
+  });
+});
+
 export const ListingController = {
   createListing,
   getAllListings,
   getListingById,
   approveListing,
+  getMyListings,
+  updateListing,
+  deleteListing,
 };

@@ -13,8 +13,23 @@ router.post(
   ListingController.createListing
 );
 
+router.get('/my-listings', auth('HOST'), ListingController.getMyListings);
+
 router.get('/', ListingController.getAllListings);
 router.get('/:id', ListingController.getListingById);
+
+router.patch(
+  '/:id',
+  auth('HOST'),
+  validateRequest(ListingValidation.updateListingZodSchema),
+  ListingController.updateListing
+);
+
+router.delete(
+  '/:id',
+  auth('HOST', 'SUPER_ADMIN'),
+  ListingController.deleteListing
+);
 
 router.patch(
   '/:id/approve',

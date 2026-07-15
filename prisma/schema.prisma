@@ -18,6 +18,7 @@ enum ListingCategory {
   STAY
   CAR
   SERVICE
+  FOOD
 }
 
 enum BookingStatus {
@@ -190,6 +191,7 @@ model Listing {
   stayDetails    StayDetails?
   carDetails     CarDetails?
   serviceDetails ServiceDetails?
+  foodDetails    FoodDetails?
 
   bookings Booking[]
 
@@ -284,4 +286,25 @@ model Booking {
   updatedAt DateTime @updatedAt
 
   @@map("bookings")
+}
+
+model FoodDetails {
+  id          String     @id @default(uuid())
+  listingId   String     @unique
+  listing     Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  items       FoodItem[]
+
+  @@map("food_details")
+}
+
+model FoodItem {
+  id            String      @id @default(uuid())
+  foodDetailsId String
+  foodDetails   FoodDetails @relation(fields: [foodDetailsId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  price         Float
+  imageUrl      String?
+
+  @@map("food_items")
 }

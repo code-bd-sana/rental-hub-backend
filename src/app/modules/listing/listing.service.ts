@@ -71,6 +71,23 @@ const createListing = async (hostId: string, payload: any) => {
           }))
         });
       }
+    } else if (payload.category === 'FOOD') {
+      const { items, ...foodData } = payload.foodDetails;
+      const foodDetails = await tx.foodDetails.create({
+        data: {
+          listingId: listing.id,
+          ...foodData
+        }
+      });
+      
+      if (items && items.length > 0) {
+        await tx.foodItem.createMany({
+          data: items.map((item: any) => ({
+            foodDetailsId: foodDetails.id,
+            ...item
+          }))
+        });
+      }
     }
 
     return listing;
@@ -83,11 +100,11 @@ const createListing = async (hostId: string, payload: any) => {
 const getAllListings = async (query: any) => {
   const { category, city, country, status } = query;
 
-  const where: any = {
-    // Only show APPROVED listings publicly by default, unless status query specifies otherwise
-    // Note: In a real app, only ADMINs should be able to pass status=PENDING/etc.
-    approvalStatus: status || 'APPROVED',
-  };
+  const where: any = {};
+  
+  if (status !== 'ALL') {
+    where.approvalStatus = status || 'APPROVED';
+  }
 
   if (category) where.category = category;
   if (city) where.city = city;
@@ -103,6 +120,9 @@ const getAllListings = async (query: any) => {
       carDetails: true,
       serviceDetails: {
         include: { packages: true }
+      },
+      foodDetails: {
+        include: { items: true }
       }
     },
     orderBy: { createdAt: 'desc' }
@@ -121,6 +141,11 @@ const getListingById = async (id: string) => {
       serviceDetails: {
         include: {
           packages: true
+        }
+      },
+      foodDetails: {
+        include: {
+          items: true
         }
       },
       host: {
@@ -155,9 +180,147 @@ const approveListing = async (listingId: string, status: any) => {
   return updatedListing;
 };
 
+const getMyListings = async (hostId: string) => {
+  const listings = await prisma.listing.findMany({
+    where: { hostId },
+    include: {
+      images: {
+        where: { isHero: true }
+      },
+      stayDetails: true,
+      carDetails: true,
+      serviceDetails: {
+        include: { packages: true }
+      },
+      foodDetails: {
+        include: { items: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+  return listings;
+};
+
+const updateListing = async (listingId: string, hostId: string, payload: any) => {
+  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+  
+  if (!listing) {
+    throw new AppError(404, 'Listing not found');
+  }
+
+  if (listing.hostId !== hostId) {
+    throw new AppError(403, 'You are not authorized to update this listing');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedListing = await tx.listing.update({
+      where: { id: listingId },
+      data: {
+        title: payload.title,
+        description: payload.description,
+        location: payload.location,
+        city: payload.city,
+        country: payload.country,
+      }
+    });
+
+    if (payload.images) {
+      await tx.listingImage.deleteMany({ where: { listingId } });
+      if (payload.images.length > 0) {
+        await tx.listingImage.createMany({
+          data: payload.images.map((url: string, index: number) => ({
+            listingId,
+            url,
+            isHero: index === 0
+          }))
+        });
+      }
+    }
+
+    if (payload.stayDetails && listing.category === 'STAY') {
+      await tx.stayDetails.update({
+        where: { listingId },
+        data: payload.stayDetails
+      });
+    }
+
+    if (payload.carDetails && listing.category === 'CAR') {
+      await tx.carDetails.update({
+        where: { listingId },
+        data: payload.carDetails
+      });
+    }
+
+    if (payload.serviceDetails && listing.category === 'SERVICE') {
+      const { packages, ...serviceData } = payload.serviceDetails;
+      const updatedService = await tx.serviceDetails.update({
+        where: { listingId },
+        data: serviceData
+      });
+
+      if (packages) {
+        await tx.servicePackage.deleteMany({
+          where: { serviceDetailsId: updatedService.id }
+        });
+        await tx.servicePackage.createMany({
+          data: packages.map((pkg: any) => ({
+            serviceDetailsId: updatedService.id,
+            ...pkg
+          }))
+        });
+      }
+    }
+
+    if (payload.foodDetails && listing.category === 'FOOD') {
+      const { items, ...foodData } = payload.foodDetails;
+      const updatedFood = await tx.foodDetails.update({
+        where: { listingId },
+        data: foodData
+      });
+
+      if (items) {
+        await tx.foodItem.deleteMany({
+          where: { foodDetailsId: updatedFood.id }
+        });
+        await tx.foodItem.createMany({
+          data: items.map((item: any) => ({
+            foodDetailsId: updatedFood.id,
+            ...item
+          }))
+        });
+      }
+    }
+
+    return updatedListing;
+  });
+
+  return await getListingById(result.id);
+};
+
+const deleteListing = async (listingId: string, hostId: string) => {
+  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+  
+  if (!listing) {
+    throw new AppError(404, 'Listing not found');
+  }
+
+  if (listing.hostId !== hostId) {
+    throw new AppError(403, 'You are not authorized to delete this listing');
+  }
+
+  await prisma.listing.delete({
+    where: { id: listingId }
+  });
+
+  return null;
+};
+
 export const ListingService = {
   createListing,
   getAllListings,
   getListingById,
   approveListing,
+  getMyListings,
+  updateListing,
+  deleteListing,
 };
