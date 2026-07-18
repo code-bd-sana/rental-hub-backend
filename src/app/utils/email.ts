@@ -15,6 +15,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
   try {
+    console.log('====>info', to, subject)
     const info = await transporter.sendMail({
       from: config.smtp.from,
       to,

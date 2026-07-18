@@ -40,7 +40,7 @@ const createTeamMember = async (payload: any) => {
 
     return user;
   });
-
+ 
   const emailContent = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
       <h2 style="color: #172554;">Welcome to Roamly!</h2>
@@ -55,6 +55,7 @@ const createTeamMember = async (payload: any) => {
       <p>Best regards,<br>Roamly Team</p>
     </div>
   `;
+
   await sendEmail(email, 'Your Account Has Been Created - Roamly', emailContent);
 
   return newUser;
