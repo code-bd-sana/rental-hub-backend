@@ -24,7 +24,9 @@ const getAllCountries = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCountry = catchAsync(async (req: Request, res: Response) => {
-  const result = await CountryService.updateCountry(req.params.id, req.body);
+  const id = req.params.id as string;
+  const result = await CountryService.updateCountry(id, req.body);
+  
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -34,7 +36,8 @@ const updateCountry = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCountry = catchAsync(async (req: Request, res: Response) => {
-  const result = await CountryService.deleteCountry(req.params.id);
+  const id = req.params.id as string;
+  const result = await CountryService.deleteCountry(id);
   sendResponse(res, {
     statusCode: 200,
     success: true,

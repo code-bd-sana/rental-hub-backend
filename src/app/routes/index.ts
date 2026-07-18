@@ -6,6 +6,7 @@ import { ListingRoutes } from '../modules/listing/listing.routes';
 import { UploadRoutes } from '../modules/upload/upload.routes';
 import { BookingRoutes } from '../modules/booking/booking.routes';
 import { CountryRoutes } from '../modules/country/country.routes';
+import { TeamRoutes } from '../modules/admin/team/team.routes';
 
 const router = Router();
 
@@ -33,6 +34,10 @@ const moduleRoutes = [
   {
     path: '/countries',
     route: CountryRoutes
+  },
+  {
+    path: '/admin/team',
+    route: TeamRoutes
   }
 ];
 

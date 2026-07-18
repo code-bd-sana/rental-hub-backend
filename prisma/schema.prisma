@@ -79,12 +79,21 @@ model GuestProfile {
   @@map("guest_profiles")
 }
 
+enum AdminPermission {
+  LOAD_DIRECTORY
+  APPROVE_CLAIMS
+  MANAGE_GUESTS
+  MANAGE_TEAM
+  VIEW_REVENUE
+}
+
 model AgentProfile {
   id     String @id @default(uuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  permissions Json @default("[]")
+  permissions       AdminPermission[] @default([])
+  assignedCountries String[]          @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
