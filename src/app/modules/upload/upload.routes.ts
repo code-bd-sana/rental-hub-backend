@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import express from 'express';
 import multer from 'multer';
 import { Request, Response, NextFunction } from 'express';
@@ -14,7 +15,7 @@ const upload = multer({ storage });
 
 router.post(
   '/image',
-  auth('HOST', 'SUPER_ADMIN'),
+  auth(Role.HOST, Role.SUPER_ADMIN),
   upload.single('image'),
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     if (!req.file) {

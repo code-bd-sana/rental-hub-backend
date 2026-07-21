@@ -64,7 +64,7 @@ const createTeamMember = async (payload: any) => {
 const getAllTeamMembers = async () => {
   return await prisma.user.findMany({
     where: {
-      role: { in: ['SUPER_ADMIN', 'AGENT', 'LOADER'] }
+      role: { in: [Role.SUPER_ADMIN, Role.AGENT, Role.LOADER] }
     },
     include: {
       agentProfile: true

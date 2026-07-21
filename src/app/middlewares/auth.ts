@@ -5,6 +5,8 @@ import config from '../config';
 import AppError from '../errors/AppError';
 import type { IAuthUser, UserRole } from '../interfaces/auth.interface';
 
+import { Role } from '@prisma/client';
+
 const isAuthUser = (payload: unknown): payload is IAuthUser => {
   if (!payload || typeof payload !== 'object') {
     return false;
@@ -16,7 +18,7 @@ const isAuthUser = (payload: unknown): payload is IAuthUser => {
   return (
     typeof candidate.userId === 'string' &&
     typeof candidate.email === 'string' &&
-    ['SUPER_ADMIN', 'AGENT', 'LOADER', 'HOST', 'GUEST'].includes(role)
+    Object.values(Role).includes(role)
   );
 };
 

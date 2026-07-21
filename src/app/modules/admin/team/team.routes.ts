@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import express from 'express';
 import { TeamController } from './team.controller';
 import validateRequest from '../../../middlewares/validateRequest';
@@ -8,27 +9,27 @@ const router = express.Router();
 
 router.post(
   '/',
-  auth('SUPER_ADMIN'),
+  auth(Role.SUPER_ADMIN),
   validateRequest(TeamValidation.createTeamMemberSchema),
   TeamController.createTeamMember
 );
 
 router.get(
   '/',
-  auth('SUPER_ADMIN'),
+  auth(Role.SUPER_ADMIN),
   TeamController.getAllTeamMembers
 );
 
 router.patch(
   '/:id',
-  auth('SUPER_ADMIN'),
+  auth(Role.SUPER_ADMIN),
   validateRequest(TeamValidation.updateTeamMemberSchema),
   TeamController.updateTeamMember
 );
 
 router.delete(
   '/:id',
-  auth('SUPER_ADMIN'),
+  auth(Role.SUPER_ADMIN),
   TeamController.deleteTeamMember
 );
 

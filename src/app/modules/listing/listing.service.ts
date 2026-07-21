@@ -1,4 +1,4 @@
-import { Listing, Prisma } from '@prisma/client';
+import { Listing, Prisma, Role } from '@prisma/client';
 import prisma from '../../utils/prisma';
 import AppError from '../../errors/AppError';
 import { deleteFromS3 } from '../../utils/s3.utils';
@@ -359,7 +359,7 @@ const deleteListing = async (listingId: string, hostId: string, userRole?: strin
   }
 
   // Bypass hostId check if the user is a SUPER_ADMIN
-  if (userRole !== 'SUPER_ADMIN' && listing.hostId !== hostId) {
+  if (userRole !== Role.SUPER_ADMIN && listing.hostId !== hostId) {
     throw new AppError(403, 'You are not authorized to delete this listing');
   }
 

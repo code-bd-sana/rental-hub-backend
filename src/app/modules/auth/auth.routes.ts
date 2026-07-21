@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import express from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
@@ -35,7 +36,7 @@ router.post(
 
 router.post(
   '/change-password',
-  auth('SUPER_ADMIN', 'AGENT', 'LOADER', 'HOST', 'GUEST'),
+  auth(Role.SUPER_ADMIN, Role.AGENT, Role.LOADER, Role.HOST, Role.GUEST),
   validateRequest(AuthValidation.changePassword),
   AuthController.changePassword
 );
