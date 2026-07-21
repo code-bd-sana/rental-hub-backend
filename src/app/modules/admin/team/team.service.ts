@@ -89,14 +89,24 @@ const updateTeamMember = async (id: string, payload: any) => {
       });
     }
 
-    if (user.agentProfile && (assignedCountries !== undefined || permissions !== undefined)) {
-      await tx.agentProfile.update({
-        where: { id: user.agentProfile.id },
-        data: {
-          ...(assignedCountries && { assignedCountries }),
-          ...(permissions && { permissions: permissions as AdminPermission[] })
-        }
-      });
+    if ((role === 'AGENT' || role === 'LOADER' || user.agentProfile) && (assignedCountries !== undefined || permissions !== undefined)) {
+      if (user.agentProfile) {
+        await tx.agentProfile.update({
+          where: { id: user.agentProfile.id },
+          data: {
+            ...(assignedCountries && { assignedCountries }),
+            ...(permissions && { permissions: permissions as AdminPermission[] })
+          }
+        });
+      } else {
+        await tx.agentProfile.create({
+          data: {
+            userId: user.id,
+            assignedCountries: assignedCountries || [],
+            permissions: (permissions || []) as AdminPermission[]
+          }
+        });
+      }
     }
 
     return updatedUser;

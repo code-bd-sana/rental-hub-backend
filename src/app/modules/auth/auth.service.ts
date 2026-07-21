@@ -119,7 +119,15 @@ const login = async (payload: any) => {
   const accessToken = jwt.sign(authPayload, config.jwt.accessSecret, { expiresIn: config.jwt.accessExpiresIn });
   const refreshToken = jwt.sign(authPayload, config.jwt.refreshSecret, { expiresIn: config.jwt.refreshExpiresIn });
 
-  return { accessToken, refreshToken, user: sanitizeUser(user) };
+  let permissions: string[] = [];
+  if (user.role === 'AGENT' || user.role === 'LOADER') {
+    const agentProfile = await prisma.agentProfile.findUnique({ where: { userId: user.id } });
+    if (agentProfile) {
+      permissions = agentProfile.permissions;
+    }
+  }
+
+  return { accessToken, refreshToken, user: { ...sanitizeUser(user), permissions } };
 };
 
 const refreshToken = async (token: string) => {
