@@ -7,6 +7,7 @@ import { UploadRoutes } from '../modules/upload/upload.routes';
 import { BookingRoutes } from '../modules/booking/booking.routes';
 import { CountryRoutes } from '../modules/country/country.routes';
 import { TeamRoutes } from '../modules/admin/team/team.routes';
+import { DirectoryRoutes } from '../modules/directory/directory.route';
 
 const router = Router();
 
@@ -38,6 +39,10 @@ const moduleRoutes = [
   {
     path: '/admin/team',
     route: TeamRoutes
+  },
+  {
+    path: '/directory',
+    route: DirectoryRoutes
   }
 ];
 

@@ -43,9 +43,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  guestProfile GuestProfile?
-  agentProfile AgentProfile?
-  hostProfile  HostProfile?
+  guestProfile      GuestProfile?
+  agentProfile      AgentProfile?
+  hostProfile       HostProfile?
+  loadedDirectories DirectoryListing[] @relation("UserLoadedDirectories")
 
   @@map("users")
 }
@@ -255,10 +256,10 @@ model CarDetails {
 }
 
 model ServiceDetails {
-  id               String           @id @default(uuid())
-  listingId        String           @unique
-  listing          Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  serviceType      String
+  id                 String   @id @default(uuid())
+  listingId          String   @unique
+  listing            Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  serviceType        String
   availableTimeSlots String[]
 
   packages ServicePackage[]
@@ -300,10 +301,10 @@ model Booking {
 }
 
 model FoodDetails {
-  id          String     @id @default(uuid())
-  listingId   String     @unique
-  listing     Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  items       FoodItem[]
+  id        String     @id @default(uuid())
+  listingId String     @unique
+  listing   Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  items     FoodItem[]
 
   @@map("food_details")
 }
@@ -328,4 +329,21 @@ model Country {
   updatedAt DateTime @updatedAt
 
   @@map("countries")
+}
+
+model DirectoryListing {
+  id             String @id @default(uuid())
+  country        String
+  businessName   String
+  businessNumber String
+  address        String
+  primaryImage   String
+
+  loadedById String
+  loadedBy   User   @relation("UserLoadedDirectories", fields: [loadedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("directory_listings")
 }
