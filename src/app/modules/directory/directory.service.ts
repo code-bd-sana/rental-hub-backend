@@ -15,8 +15,9 @@ const loadDirectory = async (payload: LoadDirectoryPayload) => {
   });
 };
 
-const getAllDirectories = async () => {
+const getAllDirectories = async (status?: any) => {
   return await prisma.directoryListing.findMany({
+    where: status ? { status } : {},
     orderBy: { createdAt: 'desc' },
     include: {
       loadedBy: {

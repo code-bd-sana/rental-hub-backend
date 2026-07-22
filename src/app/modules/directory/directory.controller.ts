@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { DirectoryService } from './directory.service';
 import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
 import { fileUploadService } from '../../utils/FileUploadService';
+import sendResponse from '../../utils/sendResponse';
+import { DirectoryService } from './directory.service';
 
 const loadDirectory = catchAsync(async (req: Request, res: Response) => {
   const { country, businessName, businessNumber, address } = req.body;
@@ -35,7 +35,8 @@ const loadDirectory = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllDirectories = catchAsync(async (req: Request, res: Response) => {
-  const result = await DirectoryService.getAllDirectories();
+  const { status } = req.query;
+  const result = await DirectoryService.getAllDirectories(status as string);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -47,12 +48,12 @@ const getAllDirectories = catchAsync(async (req: Request, res: Response) => {
 const updateDirectory = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const payload = req.body;
-  
+
   if (req.file) {
     payload.primaryImage = await fileUploadService.uploadFile(req.file, 'directory/images');
   }
 
-  const result = await DirectoryService.updateDirectory(id, payload);
+  const result = await DirectoryService.updateDirectory(id as string, payload);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -63,7 +64,7 @@ const updateDirectory = catchAsync(async (req: Request, res: Response) => {
 
 const deleteDirectory = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await DirectoryService.deleteDirectory(id);
+  const result = await DirectoryService.deleteDirectory(id as string);
   sendResponse(res, {
     statusCode: 200,
     success: true,

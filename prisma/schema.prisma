@@ -331,6 +331,11 @@ model Country {
   @@map("countries")
 }
 
+enum DirectoryStatus {
+  UNCLAIMED
+  CLAIMED
+}
+
 model DirectoryListing {
   id             String @id @default(uuid())
   country        String
@@ -338,6 +343,7 @@ model DirectoryListing {
   businessNumber String
   address        String
   primaryImage   String
+  status         DirectoryStatus @default(UNCLAIMED)
 
   loadedById String
   loadedBy   User   @relation("UserLoadedDirectories", fields: [loadedById], references: [id])
