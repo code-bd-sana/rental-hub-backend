@@ -64,8 +64,16 @@ const approveClaim = async (id: string) => {
   });
 };
 
+const rejectClaim = async (id: string) => {
+  return await prisma.claimRequest.update({
+    where: { id },
+    data: { status: ClaimStatus.REJECTED }
+  });
+};
+
 export const ClaimService = {
   createClaim,
   getClaims,
-  approveClaim
+  approveClaim,
+  rejectClaim
 };

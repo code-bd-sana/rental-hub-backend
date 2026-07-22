@@ -55,8 +55,20 @@ const approveClaim = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const rejectClaim = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await ClaimService.rejectClaim(id as string);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Claim rejected successfully',
+    data: result
+  });
+});
+
 export const ClaimController = {
   createClaim,
   getClaims,
-  approveClaim
+  approveClaim,
+  rejectClaim
 };

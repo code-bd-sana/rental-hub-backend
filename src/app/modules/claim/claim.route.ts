@@ -27,4 +27,10 @@ router.patch(
   ClaimController.approveClaim
 );
 
+router.patch(
+  '/:id/reject',
+  auth(), // Add specific roles later if needed (e.g. Admin)
+  ClaimController.rejectClaim
+);
+
 export const ClaimRoutes = router;
