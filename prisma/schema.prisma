@@ -47,6 +47,7 @@ model User {
   agentProfile      AgentProfile?
   hostProfile       HostProfile?
   loadedDirectories DirectoryListing[] @relation("UserLoadedDirectories")
+  claimRequests     ClaimRequest[]     @relation("UserClaimRequests")
 
   @@map("users")
 }
@@ -348,8 +349,35 @@ model DirectoryListing {
   loadedById String
   loadedBy   User   @relation("UserLoadedDirectories", fields: [loadedById], references: [id])
 
+  claimRequests ClaimRequest[] @relation("DirectoryClaimRequests")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("directory_listings")
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ClaimRequest {
+  id                   String           @id @default(uuid())
+  directoryListingId   String
+  directoryListing     DirectoryListing @relation("DirectoryClaimRequests", fields: [directoryListingId], references: [id])
+  userId               String
+  user                 User             @relation("UserClaimRequests", fields: [userId], references: [id])
+  
+  idCardUrl            String
+  proofOfOwnershipUrl  String
+  businessRegistration String
+  
+  status               ClaimStatus      @default(PENDING)
+  
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@map("claim_requests")
 }
