@@ -62,6 +62,7 @@ model GuestProfile {
   allergies          String?
   extraText          String?
   subscriptionStatus Boolean  @default(false)
+  stripeCustomerId   String?
 
   country                  String?
   city                     String?
@@ -119,6 +120,11 @@ enum HostApprovalStatus {
   SUSPENDED
 }
 
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
 model HostProfile {
   id     String @id @default(uuid())
   userId String @unique
@@ -147,6 +153,10 @@ model HostProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  stripeCustomerId String?
+  paymentStatus    PaymentStatus @default(UNPAID)
+  paymentExpiresAt DateTime?
 
   @@map("host_profiles")
 }
@@ -338,7 +348,7 @@ enum DirectoryStatus {
 }
 
 model DirectoryListing {
-  id             String @id @default(uuid())
+  id             String          @id @default(uuid())
   country        String
   businessName   String
   businessNumber String
@@ -364,20 +374,20 @@ enum ClaimStatus {
 }
 
 model ClaimRequest {
-  id                   String           @id @default(uuid())
-  directoryListingId   String
-  directoryListing     DirectoryListing @relation("DirectoryClaimRequests", fields: [directoryListingId], references: [id])
-  userId               String
-  user                 User             @relation("UserClaimRequests", fields: [userId], references: [id])
-  
+  id                 String           @id @default(uuid())
+  directoryListingId String
+  directoryListing   DirectoryListing @relation("DirectoryClaimRequests", fields: [directoryListingId], references: [id])
+  userId             String
+  user               User             @relation("UserClaimRequests", fields: [userId], references: [id])
+
   idCardUrl            String
   proofOfOwnershipUrl  String
   businessRegistration String
-  
-  status               ClaimStatus      @default(PENDING)
-  
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+
+  status ClaimStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("claim_requests")
 }

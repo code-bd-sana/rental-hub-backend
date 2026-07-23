@@ -40,9 +40,24 @@ const deleteDirectory = async (id: string) => {
   });
 };
 
+const getPublicDirectories = async (hasSubscription: boolean) => {
+  if (hasSubscription) {
+    return await prisma.directoryListing.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  } else {
+    // Only return 10 items
+    return await prisma.directoryListing.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+  }
+};
+
 export const DirectoryService = {
   loadDirectory,
   getAllDirectories,
   updateDirectory,
-  deleteDirectory
+  deleteDirectory,
+  getPublicDirectories
 };

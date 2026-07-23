@@ -3,31 +3,35 @@ import { DirectoryController } from './directory.controller';
 import auth from '../../middlewares/auth';
 import { fileUploadMiddleware } from '../../middlewares/fileUpload';
 
+import { Role } from '@prisma/client';
+
 const router = express.Router();
+
+router.get('/public', DirectoryController.getPublicDirectories);
 
 router.post(
   '/',
-  auth('AGENT', 'LOADER'), // Require AGENT or LOADER role
+  auth(Role.AGENT, Role.LOADER), // Require AGENT or LOADER role
   fileUploadMiddleware.single('primaryImage'),
   DirectoryController.loadDirectory
 );
 
 router.get(
   '/',
-  auth('AGENT', 'LOADER', 'SUPER_ADMIN'),
+  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN),
   DirectoryController.getAllDirectories
 );
 
 router.patch(
   '/:id',
-  auth('AGENT', 'LOADER', 'SUPER_ADMIN'),
+  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN),
   fileUploadMiddleware.single('primaryImage'),
   DirectoryController.updateDirectory
 );
 
 router.delete(
   '/:id',
-  auth('AGENT', 'LOADER', 'SUPER_ADMIN'),
+  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN),
   DirectoryController.deleteDirectory
 );
 

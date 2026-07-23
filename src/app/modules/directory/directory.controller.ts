@@ -1,4 +1,7 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import config from '../../config';
+import prisma from '../../utils/prisma';
 import catchAsync from '../../utils/catchAsync';
 import { fileUploadService } from '../../utils/FileUploadService';
 import sendResponse from '../../utils/sendResponse';
@@ -73,9 +76,45 @@ const deleteDirectory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPublicDirectories = catchAsync(async (req: Request, res: Response) => {
+  let hasSubscription = false;
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded: any = jwt.verify(token, config.jwt.accessSecret);
+      if (decoded.role === 'GUEST') {
+        const guestProfile = await prisma.guestProfile.findUnique({ where: { userId: decoded.userId } });
+        if (guestProfile && guestProfile.subscriptionStatus === true) {
+          hasSubscription = true;
+        }
+      } else if (decoded.role === 'HOST' || decoded.role === 'SUPER_ADMIN') {
+        hasSubscription = true; // hosts/admins see all
+      }
+    } catch (e) {
+      // invalid token, treat as unsubscribed
+    }
+  }
+
+  const result = await DirectoryService.getPublicDirectories(hasSubscription);
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Public directories fetched successfully',
+    data: {
+      items: result,
+      hasSubscription,
+      isLimited: !hasSubscription && result.length === 10
+    }
+  });
+});
+
 export const DirectoryController = {
   loadDirectory,
   getAllDirectories,
   updateDirectory,
-  deleteDirectory
+  deleteDirectory,
+  getPublicDirectories
 };

@@ -9,6 +9,7 @@ import { CountryRoutes } from '../modules/country/country.routes';
 import { TeamRoutes } from '../modules/admin/team/team.routes';
 import { DirectoryRoutes } from '../modules/directory/directory.route';
 import { ClaimRoutes } from '../modules/claim/claim.route';
+import { PaymentRoutes } from '../modules/payment/payment.routes';
 
 const router = Router();
 
@@ -48,6 +49,10 @@ const moduleRoutes = [
   {
     path: '/claims',
     route: ClaimRoutes
+  },
+  {
+    path: '/payments',
+    route: PaymentRoutes
   }
 ];
 

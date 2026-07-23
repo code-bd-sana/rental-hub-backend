@@ -45,6 +45,12 @@ const config = {
     user: process.env.SMTP_USER ?? '',
     pass: process.env.SMTP_PASS ?? '',
     from: process.env.SMTP_FROM ?? 'noreply@example.com'
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY ?? '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
+    hostSubscriptionPriceId: process.env.STRIPE_HOST_FEE_PRICE_ID ?? '',
+    guestSubscriptionPriceId: process.env.STRIPE_GUEST_SUBSCRIPTION_PRICE_ID ?? ''
   }
 };
 

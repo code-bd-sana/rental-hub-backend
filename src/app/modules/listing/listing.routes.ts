@@ -5,16 +5,19 @@ import validateRequest from '../../middlewares/validateRequest';
 import { ListingController } from './listing.controller';
 import { ListingValidation } from './listing.validation';
 
+import { requireHostPayment } from '../../middlewares/requireHostPayment';
+
 const router = express.Router();
 
 router.post(
   '/',
   auth(Role.HOST),
+  requireHostPayment,
   validateRequest(ListingValidation.createListingZodSchema),
   ListingController.createListing
 );
 
-router.get('/my-listings', auth(Role.HOST), ListingController.getMyListings);
+router.get('/my-listings', auth(Role.HOST), requireHostPayment, ListingController.getMyListings);
 
 router.get('/', ListingController.getAllListings);
 router.get('/:id', ListingController.getListingById);
@@ -22,6 +25,7 @@ router.get('/:id', ListingController.getListingById);
 router.patch(
   '/:id',
   auth(Role.HOST),
+  requireHostPayment,
   validateRequest(ListingValidation.updateListingZodSchema),
   ListingController.updateListing
 );
@@ -29,6 +33,7 @@ router.patch(
 router.delete(
   '/:id',
   auth(Role.HOST, Role.SUPER_ADMIN),
+  requireHostPayment,
   ListingController.deleteListing
 );
 
