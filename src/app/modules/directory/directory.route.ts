@@ -11,14 +11,14 @@ router.get('/public', DirectoryController.getPublicDirectories);
 
 router.post(
   '/',
-  auth(Role.AGENT, Role.LOADER), // Require AGENT or LOADER role
+  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN),
   fileUploadMiddleware.single('primaryImage'),
   DirectoryController.loadDirectory
 );
 
 router.get(
   '/',
-  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN),
+  auth(Role.AGENT, Role.LOADER, Role.SUPER_ADMIN, Role.HOST),
   DirectoryController.getAllDirectories
 );
 
