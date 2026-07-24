@@ -10,8 +10,30 @@ interface CreateClaimPayload {
 }
 
 const createClaim = async (payload: CreateClaimPayload) => {
+  // Check if user already has an approved claim
+  const existingApprovedClaim = await prisma.claimRequest.findFirst({
+    where: {
+      userId: payload.userId,
+      status: ClaimStatus.APPROVED,
+    },
+  });
+
+  if (existingApprovedClaim) {
+    throw new Error('You have already claimed a business. A host can only claim one business.');
+  }
+
   return await prisma.claimRequest.create({
     data: payload
+  });
+};
+
+const getMyClaims = async (userId: string) => {
+  return await prisma.claimRequest.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      directoryListing: true,
+    }
   });
 };
 
@@ -74,6 +96,7 @@ const rejectClaim = async (id: string) => {
 export const ClaimService = {
   createClaim,
   getClaims,
+  getMyClaims,
   approveClaim,
   rejectClaim
 };

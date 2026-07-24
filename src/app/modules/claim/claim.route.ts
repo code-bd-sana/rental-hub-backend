@@ -16,6 +16,12 @@ router.post(
 );
 
 router.get(
+  '/me',
+  auth(), // Anyone logged in can fetch their claims
+  ClaimController.getMyClaims
+);
+
+router.get(
   '/',
   auth(), // Add specific roles later if needed (e.g. Admin)
   ClaimController.getClaims

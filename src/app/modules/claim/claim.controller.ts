@@ -44,6 +44,16 @@ const getClaims = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyClaims = catchAsync(async (req: Request, res: Response) => {
+  const result = await ClaimService.getMyClaims(req.user!.userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'My claims fetched successfully',
+    data: result
+  });
+});
+
 const approveClaim = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await ClaimService.approveClaim(id as string);
@@ -69,6 +79,7 @@ const rejectClaim = catchAsync(async (req: Request, res: Response) => {
 export const ClaimController = {
   createClaim,
   getClaims,
+  getMyClaims,
   approveClaim,
   rejectClaim
 };
