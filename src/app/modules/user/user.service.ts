@@ -149,6 +149,14 @@ const approveHost = async (hostProfileId: string, status: HostApprovalStatus) =>
   return updatedProfile;
 };
 
+const deleteUser = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found.');
+
+  await prisma.user.delete({ where: { id: userId } });
+  return user;
+};
+
 export const UserService = {
   getMe,
   updateMe,
@@ -156,5 +164,6 @@ export const UserService = {
   getAllHosts,
   createAgent,
   createLoader,
-  approveHost
+  approveHost,
+  deleteUser
 };

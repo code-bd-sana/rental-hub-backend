@@ -52,4 +52,10 @@ router.patch(
   UserController.approveHost
 );
 
+router.delete(
+  '/:id',
+  auth(Role.SUPER_ADMIN),
+  UserController.deleteUser
+);
+
 export const UserRoutes = router;

@@ -80,6 +80,17 @@ const approveHost = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.deleteUser(req.params.id as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User deleted successfully.',
+    data: result
+  });
+});
+
 export const UserController = {
   getMe,
   updateMe,
@@ -87,5 +98,6 @@ export const UserController = {
   getAllHosts,
   createAgent,
   createLoader,
-  approveHost
+  approveHost,
+  deleteUser
 };
