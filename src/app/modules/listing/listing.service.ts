@@ -103,7 +103,7 @@ const createListing = async (hostId: string, payload: any) => {
 };
 
 const getAllListings = async (query: any) => {
-  const { category, city, country, status, page, limit } = query;
+  const { category, city, country, status, page, limit, searchTerm } = query;
 
   const where: any = {};
 
@@ -128,6 +128,16 @@ const getAllListings = async (query: any) => {
   }
   if (city) where.city = city;
   if (country) where.country = country;
+
+  if (searchTerm) {
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
+      { location: { contains: searchTerm, mode: 'insensitive' } },
+      { city: { contains: searchTerm, mode: 'insensitive' } },
+      { country: { contains: searchTerm, mode: 'insensitive' } }
+    ];
+  }
 
   const pageNum = Number(page) || 1;
   const limitNum = Number(limit) || 20;
