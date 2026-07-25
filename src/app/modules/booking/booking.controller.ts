@@ -6,7 +6,7 @@ import sendResponse from '../../utils/sendResponse';
 const createBooking = catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
   
-  const result = await BookingService.createBooking(user.id, req.body);
+  const result = await BookingService.createBooking(user.userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -18,7 +18,7 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
 
 const getMyBookings = catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const result = await BookingService.getMyBookings(user.id);
+  const result = await BookingService.getMyBookings(user.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -30,7 +30,7 @@ const getMyBookings = catchAsync(async (req: Request, res: Response) => {
 
 const getHostBookings = catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const result = await BookingService.getHostBookings(user.id);
+  const result = await BookingService.getHostBookings(user.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -40,8 +40,21 @@ const getHostBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getBookingById = catchAsync(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const result = await BookingService.getBookingById(req.params.id, user.userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Booking fetched successfully',
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   getMyBookings,
   getHostBookings,
+  getBookingById,
 };

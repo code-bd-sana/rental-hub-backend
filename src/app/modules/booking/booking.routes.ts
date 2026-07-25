@@ -25,4 +25,10 @@ router.get(
   BookingController.getHostBookings
 );
 
+router.get(
+  '/:id',
+  auth('GUEST', 'HOST'),
+  BookingController.getBookingById
+);
+
 export const BookingRoutes = router;

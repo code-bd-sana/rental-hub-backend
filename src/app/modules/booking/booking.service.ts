@@ -88,8 +88,37 @@ const getHostBookings = async (userId: string) => {
   return bookings;
 };
 
+const getBookingById = async (id: string, userId: string) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id },
+    include: {
+      listing: {
+        select: { title: true, category: true, location: true, address: true, images: { take: 1 } }
+      }
+    }
+  });
+
+  if (!booking) {
+    throw new AppError(404, 'Booking not found');
+  }
+
+  // Ensure user owns booking or listing
+  const guest = await prisma.guestProfile.findUnique({ where: { userId } });
+  const host = await prisma.hostProfile.findUnique({ where: { userId } });
+
+  const isGuestOwner = guest && booking.guestId === guest.id;
+  const isHostOwner = host && booking.listing.hostId === host.id;
+
+  if (!isGuestOwner && !isHostOwner) {
+    throw new AppError(403, 'You are not authorized to view this booking');
+  }
+
+  return booking;
+};
+
 export const BookingService = {
   createBooking,
   getMyBookings,
-  getHostBookings
+  getHostBookings,
+  getBookingById
 };
