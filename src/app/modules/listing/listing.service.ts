@@ -13,10 +13,6 @@ const createListing = async (hostId: string, payload: any) => {
     throw new AppError(404, 'Host profile not found');
   }
 
-  if (host.approvalStatus !== 'APPROVED') {
-    throw new AppError(403, 'Your host profile is not approved yet.');
-  }
-
   const isPaid = host.paymentStatus === 'PAID';
   const expiresAt = host.paymentExpiresAt ? new Date(host.paymentExpiresAt) : null;
   const isExpired = expiresAt ? expiresAt < new Date() : true;
