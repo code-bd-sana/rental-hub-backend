@@ -103,17 +103,37 @@ const createListing = async (hostId: string, payload: any) => {
 };
 
 const getAllListings = async (query: any) => {
-  const { category, city, country, status } = query;
+  const { category, city, country, status, page, limit } = query;
 
   const where: any = {};
 
-  if (status !== 'ALL') {
+  if (status && status !== 'ALL') {
     where.approvalStatus = status || 'APPROVED';
+  } else if (!status) {
+    where.approvalStatus = 'APPROVED'; // default for public
   }
 
-  if (category) where.category = category;
+  if (category) {
+    if (['Salon', 'Barber', 'Barbar', 'Spa', 'makeup'].includes(category)) {
+      where.category = 'SERVICE';
+      where.serviceDetails = {
+        serviceType: {
+          equals: category,
+          mode: 'insensitive'
+        }
+      };
+    } else {
+      where.category = category;
+    }
+  }
   if (city) where.city = city;
   if (country) where.country = country;
+
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 20;
+  const skip = (pageNum - 1) * limitNum;
+
+  const total = await prisma.listing.count({ where });
 
   const listings = await prisma.listing.findMany({
     where,
@@ -130,10 +150,20 @@ const getAllListings = async (query: any) => {
         include: { items: true }
       }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limitNum
   });
 
-  return listings;
+  return {
+    meta: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum)
+    },
+    data: listings
+  };
 };
 
 const getListingById = async (id: string) => {

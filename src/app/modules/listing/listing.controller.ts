@@ -40,7 +40,8 @@ const getAllListings = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Listings fetched successfully',
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 
