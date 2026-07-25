@@ -17,6 +17,14 @@ const createListing = async (hostId: string, payload: any) => {
     throw new AppError(403, 'Your host profile is not approved yet.');
   }
 
+  const isPaid = host.paymentStatus === 'PAID';
+  const expiresAt = host.paymentExpiresAt ? new Date(host.paymentExpiresAt) : null;
+  const isExpired = expiresAt ? expiresAt < new Date() : true;
+
+  if (!isPaid || isExpired) {
+    throw new AppError(403, 'You must have an active subscription to add a listing.');
+  }
+
   // Create listing within a transaction to ensure all relations are created
   const result = await prisma.$transaction(async (tx) => {
     const listing = await tx.listing.create({
@@ -27,7 +35,7 @@ const createListing = async (hostId: string, payload: any) => {
         description: payload.description,
         location: payload.location,
         city: payload.city,
-        country: payload.country,
+        country: payload.country
       }
     });
 
@@ -63,7 +71,7 @@ const createListing = async (hostId: string, payload: any) => {
           ...serviceData
         }
       });
-      
+
       if (packages && packages.length > 0) {
         await tx.servicePackage.createMany({
           data: packages.map((pkg: any) => ({
@@ -80,7 +88,7 @@ const createListing = async (hostId: string, payload: any) => {
           ...foodData
         }
       });
-      
+
       if (items && items.length > 0) {
         await tx.foodItem.createMany({
           data: items.map((item: any) => ({
@@ -102,7 +110,7 @@ const getAllListings = async (query: any) => {
   const { category, city, country, status } = query;
 
   const where: any = {};
-  
+
   if (status !== 'ALL') {
     where.approvalStatus = status || 'APPROVED';
   }
@@ -168,7 +176,7 @@ const getListingById = async (id: string) => {
 
 const approveListing = async (listingId: string, status: any) => {
   const listing = await prisma.listing.findUnique({ where: { id: listingId } });
-  
+
   if (!listing) {
     throw new AppError(404, 'Listing not found');
   }
@@ -203,7 +211,7 @@ const getMyListings = async (hostId: string) => {
 };
 
 const updateListing = async (listingId: string, hostId: string, payload: any) => {
-  const listing = await prisma.listing.findUnique({ 
+  const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     include: {
       images: true,
@@ -211,7 +219,7 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
       foodDetails: { include: { items: true } }
     }
   });
-  
+
   if (!listing) {
     throw new AppError(404, 'Listing not found');
   }
@@ -220,13 +228,29 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
     throw new AppError(403, 'You are not authorized to update this listing');
   }
 
+  const host = await prisma.hostProfile.findUnique({
+    where: { id: hostId }
+  });
+
+  if (!host) {
+    throw new AppError(404, 'Host profile not found');
+  }
+
+  const isPaid = host.paymentStatus === 'PAID';
+  const expiresAt = host.paymentExpiresAt ? new Date(host.paymentExpiresAt) : null;
+  const isExpired = expiresAt ? expiresAt < new Date() : true;
+
+  if (!isPaid || isExpired) {
+    throw new AppError(403, 'You must have an active subscription to update a listing.');
+  }
+
   const s3ImagesToDelete: string[] = [];
 
   // Check main images
   if (payload.images && listing.images) {
     const newImageUrls = payload.images;
-    const existingImageUrls = listing.images.map(img => img.url);
-    const removedImages = existingImageUrls.filter(url => !newImageUrls.includes(url));
+    const existingImageUrls = listing.images.map((img) => img.url);
+    const removedImages = existingImageUrls.filter((url) => !newImageUrls.includes(url));
     s3ImagesToDelete.push(...removedImages);
   }
 
@@ -236,9 +260,9 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
       .map((pkg: any) => pkg.imageUrl)
       .filter(Boolean) as string[];
     const existingPackageImages = listing.serviceDetails.packages
-      .map(pkg => pkg.imageUrl)
+      .map((pkg) => pkg.imageUrl)
       .filter(Boolean) as string[];
-    const removedPkgImages = existingPackageImages.filter(url => !newPackageImages.includes(url));
+    const removedPkgImages = existingPackageImages.filter((url) => !newPackageImages.includes(url));
     s3ImagesToDelete.push(...removedPkgImages);
   }
 
@@ -248,9 +272,9 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
       .map((item: any) => item.imageUrl)
       .filter(Boolean) as string[];
     const existingItemImages = listing.foodDetails.items
-      .map(item => item.imageUrl)
+      .map((item) => item.imageUrl)
       .filter(Boolean) as string[];
-    const removedItemImages = existingItemImages.filter(url => !newItemImages.includes(url));
+    const removedItemImages = existingItemImages.filter((url) => !newItemImages.includes(url));
     s3ImagesToDelete.push(...removedItemImages);
   }
 
@@ -262,7 +286,7 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
         description: payload.description,
         location: payload.location,
         city: payload.city,
-        country: payload.country,
+        country: payload.country
       }
     });
 
@@ -338,14 +362,14 @@ const updateListing = async (listingId: string, hostId: string, payload: any) =>
 
   // After successful DB transaction, delete orphaned images from S3
   if (s3ImagesToDelete.length > 0) {
-    await Promise.allSettled(s3ImagesToDelete.map(url => deleteFromS3(url)));
+    await Promise.allSettled(s3ImagesToDelete.map((url) => deleteFromS3(url)));
   }
 
   return await getListingById(result.id);
 };
 
 const deleteListing = async (listingId: string, hostId: string, userRole?: string) => {
-  const listing = await prisma.listing.findUnique({ 
+  const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     include: {
       images: true,
@@ -353,7 +377,7 @@ const deleteListing = async (listingId: string, hostId: string, userRole?: strin
       foodDetails: { include: { items: true } }
     }
   });
-  
+
   if (!listing) {
     throw new AppError(404, 'Listing not found');
   }
@@ -365,28 +389,28 @@ const deleteListing = async (listingId: string, hostId: string, userRole?: strin
 
   // Collect all associated S3 images to delete
   const imagesToDelete: string[] = [];
-  
+
   if (listing.images && listing.images.length > 0) {
-    imagesToDelete.push(...listing.images.map(img => img.url));
+    imagesToDelete.push(...listing.images.map((img) => img.url));
   }
 
   if (listing.serviceDetails && listing.serviceDetails.packages) {
     const pkgImages = listing.serviceDetails.packages
-      .filter(pkg => pkg.imageUrl)
-      .map(pkg => pkg.imageUrl as string);
+      .filter((pkg) => pkg.imageUrl)
+      .map((pkg) => pkg.imageUrl as string);
     imagesToDelete.push(...pkgImages);
   }
 
   if (listing.foodDetails && listing.foodDetails.items) {
     const itemImages = listing.foodDetails.items
-      .filter(item => item.imageUrl)
-      .map(item => item.imageUrl as string);
+      .filter((item) => item.imageUrl)
+      .map((item) => item.imageUrl as string);
     imagesToDelete.push(...itemImages);
   }
 
   // Delete all collected images from S3 concurrently
   if (imagesToDelete.length > 0) {
-    await Promise.allSettled(imagesToDelete.map(url => deleteFromS3(url)));
+    await Promise.allSettled(imagesToDelete.map((url) => deleteFromS3(url)));
   }
 
   await prisma.listing.delete({
@@ -403,5 +427,5 @@ export const ListingService = {
   approveListing,
   getMyListings,
   updateListing,
-  deleteListing,
+  deleteListing
 };
