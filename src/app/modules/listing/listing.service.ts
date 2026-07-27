@@ -114,11 +114,11 @@ const getAllListings = async (query: any) => {
   }
 
   if (category) {
-    if (['Salon', 'Barber', 'Barbar', 'Spa', 'makeup'].includes(category)) {
+    if (['Salon', 'Barber', 'Spa'].includes(category)) {
       where.category = 'SERVICE';
       where.serviceDetails = {
         serviceType: {
-          equals: category,
+          in: category === 'Barber' ? ['Barber', 'Barbar'] : [category],
           mode: 'insensitive'
         }
       };
