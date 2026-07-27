@@ -116,9 +116,38 @@ const getBookingById = async (id: string, userId: string) => {
   return booking;
 };
 
+const cancelBooking = async (id: string, userId: string) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id }
+  });
+
+  if (!booking) {
+    throw new AppError(404, 'Booking not found');
+  }
+
+  // Ensure user owns booking
+  const guest = await prisma.guestProfile.findUnique({ where: { userId } });
+
+  if (!guest || booking.guestId !== guest.id) {
+    throw new AppError(403, 'You are not authorized to cancel this booking');
+  }
+
+  if (booking.status === 'CANCELLED') {
+    throw new AppError(400, 'Booking is already cancelled');
+  }
+
+  const updatedBooking = await prisma.booking.update({
+    where: { id },
+    data: { status: 'CANCELLED' }
+  });
+
+  return updatedBooking;
+};
+
 export const BookingService = {
   createBooking,
   getMyBookings,
   getHostBookings,
-  getBookingById
+  getBookingById,
+  cancelBooking
 };
