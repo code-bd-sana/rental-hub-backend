@@ -173,17 +173,6 @@ const getAllListings = async (query: any) => {
     take: limitNum
   });
 
-  // Strip sensitive info if not subscribed
-  const resultData = listings.map(listing => {
-    if (!isSubscribed) {
-      return {
-        ...listing,
-        description: '', // hide hours/phone
-      };
-    }
-    return listing;
-  });
-
   return {
     meta: {
       page: pageNum,
@@ -191,7 +180,7 @@ const getAllListings = async (query: any) => {
       total,
       totalPages: Math.ceil(total / limitNum),
     },
-    data: resultData,
+    data: listings,
   };
 };
 
