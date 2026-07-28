@@ -139,8 +139,16 @@ const getAllListings = async (query: any) => {
     ];
   }
 
-  const pageNum = Number(page) || 1;
-  const limitNum = Number(limit) || 20;
+  const isSubscribed = query.isSubscribed === true;
+  
+  let pageNum = Number(page) || 1;
+  let limitNum = Number(limit) || 20;
+  
+  if (!isSubscribed) {
+    pageNum = 1; // Unsubscribed users cannot paginate
+    limitNum = Math.min(limitNum, 12); // Max 12 items
+  }
+
   const skip = (pageNum - 1) * limitNum;
 
   const total = await prisma.listing.count({ where });
@@ -165,14 +173,25 @@ const getAllListings = async (query: any) => {
     take: limitNum
   });
 
+  // Strip sensitive info if not subscribed
+  const resultData = listings.map(listing => {
+    if (!isSubscribed) {
+      return {
+        ...listing,
+        description: '', // hide hours/phone
+      };
+    }
+    return listing;
+  });
+
   return {
     meta: {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPages: Math.ceil(total / limitNum)
+      totalPages: Math.ceil(total / limitNum),
     },
-    data: listings
+    data: resultData,
   };
 };
 
