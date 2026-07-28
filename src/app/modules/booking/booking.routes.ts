@@ -37,4 +37,10 @@ router.patch(
   BookingController.cancelBooking
 );
 
+router.patch(
+  '/:id/status',
+  auth('HOST'),
+  BookingController.updateBookingStatus
+);
+
 export const BookingRoutes = router;
