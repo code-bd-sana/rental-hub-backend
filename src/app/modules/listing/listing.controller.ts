@@ -34,7 +34,32 @@ const createListing = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllListings = catchAsync(async (req: Request, res: Response) => {
-  const result = await ListingService.getAllListings(req.query);
+  let isSubscribed = false;
+  
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const jwt = require('jsonwebtoken');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const config = require('../../config').default;
+      const decoded = jwt.verify(token, config.jwt.accessSecret) as any;
+      
+      if (['SUPER_ADMIN', 'AGENT', 'HOST'].includes(decoded.role)) {
+        isSubscribed = true;
+      } else if (decoded.role === 'GUEST') {
+        const guest = await prisma.guestProfile.findUnique({ where: { userId: decoded.userId } });
+        if (guest?.subscriptionStatus) {
+          isSubscribed = true;
+        }
+      }
+    } catch (e) {
+      // invalid token, ignore
+    }
+  }
+
+  const result = await ListingService.getAllListings({ ...req.query, isSubscribed });
 
   sendResponse(res, {
     statusCode: 200,

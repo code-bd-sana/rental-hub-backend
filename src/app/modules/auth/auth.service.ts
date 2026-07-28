@@ -127,7 +127,15 @@ const login = async (payload: any) => {
     }
   }
 
-  return { accessToken, refreshToken, user: { ...sanitizeUser(user), permissions } };
+  let subscriptionStatus = false;
+  if (user.role === 'GUEST') {
+    const guestProfile = await prisma.guestProfile.findUnique({ where: { userId: user.id } });
+    if (guestProfile) {
+      subscriptionStatus = guestProfile.subscriptionStatus;
+    }
+  }
+
+  return { accessToken, refreshToken, user: { ...sanitizeUser(user), permissions, subscriptionStatus } };
 };
 
 const refreshToken = async (token: string) => {
