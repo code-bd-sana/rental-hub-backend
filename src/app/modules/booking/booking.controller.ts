@@ -42,7 +42,7 @@ const getHostBookings = catchAsync(async (req: Request, res: Response) => {
 
 const getBookingById = catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const result = await BookingService.getBookingById(req.params.id, user.userId);
+  const result = await BookingService.getBookingById(req.params.id as string, user.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -54,7 +54,7 @@ const getBookingById = catchAsync(async (req: Request, res: Response) => {
 
 const cancelBooking = catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const result = await BookingService.cancelBooking(req.params.id, user.userId);
+  const result = await BookingService.cancelBooking(req.params.id as string, user.userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -66,7 +66,7 @@ const cancelBooking = catchAsync(async (req: Request, res: Response) => {
 
 
 const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
-  const result = await BookingService.updateBookingStatus(req.params.id, req.user!.userId, req.body.status);
+  const result = await BookingService.updateBookingStatus(req.params.id as string, req.user!.userId, req.body.status);
   sendResponse(res, {
     statusCode: 200,
     success: true,

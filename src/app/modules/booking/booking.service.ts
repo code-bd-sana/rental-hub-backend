@@ -93,7 +93,7 @@ const getBookingById = async (id: string, userId: string) => {
     where: { id },
     include: {
       listing: {
-        select: { title: true, category: true, location: true, address: true, images: { take: 1 } }
+        select: { title: true, category: true, location: true, address: true, hostId: true, images: { take: 1 } }
       }
     }
   });
